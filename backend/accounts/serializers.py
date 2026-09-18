@@ -1,7 +1,13 @@
+import logging
+
+from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model
 from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
+
+logger = logging.getLogger(__name__)
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -97,11 +103,21 @@ class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
         User = get_user_model()
 
         user = User.objects.filter(email__iexact=email).first()
+        found_by_email = user is not None
+        found_by_username = False
 
         if not user:
             user = User.objects.filter(username__iexact=email).first()
+            found_by_username = user is not None
 
         if not user:
+            self._log_login_check(
+                User,
+                found_by_email,
+                found_by_username,
+                user,
+                False,
+            )
             raise AuthenticationFailed(
                 self.error_messages["no_active_account"],
                 "no_active_account"
@@ -111,6 +127,13 @@ class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
             request=self.context.get("request"),
             username=user.username,
             password=password,
+        )
+        self._log_login_check(
+            User,
+            found_by_email,
+            found_by_username,
+            user,
+            bool(self.user),
         )
 
         if not self.user or not self.user.is_active:
@@ -125,3 +148,21 @@ class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
             "refresh": str(refresh),
             "access": str(refresh.access_token),
         }
+
+    @staticmethod
+    def _log_login_check(User, found_by_email, found_by_username, user, authenticate_succeeded):
+        database = settings.DATABASES["default"]
+        logger.info(
+            "PROD LOGIN CHECK: user_found_by_email=%s user_found_by_username=%s "
+            "user_model=%s database_engine=%s database_name=%s database_host=%s "
+            "database_port=%s user_active=%s authenticate_succeeded=%s",
+            found_by_email,
+            found_by_username,
+            User._meta.label,
+            database.get("ENGINE"),
+            database.get("NAME"),
+            database.get("HOST"),
+            database.get("PORT"),
+            user.is_active if user else False,
+            authenticate_succeeded,
+        )
