@@ -1,0 +1,229 @@
+## Sajo CCTV CRM Project Summary
+
+Sajo CCTV CRM is a full-stack customer relationship and operations management system for a CCTV/security-services business.
+
+### Technology Stack
+
+- **Frontend:** React 18 with Vite
+- **Backend:** Django 5 with Django REST Framework
+- **Database:** MySQL in normal development/production configuration, with SQLite support for isolated tests
+- **Authentication:** JWT authentication stored in secure HttpOnly cookies with CSRF protection
+- **File handling:** Protected media endpoints and private database-backup storage
+- **UI:** Existing React design preserved with reusable local SVG icons
+
+### Main Modules
+
+The project includes:
+
+- Dashboard
+- Staff management
+- Leads
+- Customers
+- Enquiries
+- Referral Partners
+- Projects
+- AMC contracts
+- Job Activities
+- Complaints
+- Calendar and Todos
+- Vendors
+- Purchase Orders
+- Purchase Invoices
+- Quotations
+- Proforma Invoices
+- GST Invoices
+- Payments
+- Advance Payments
+- Credit Notes
+- Items
+- Expenses
+- Activity Logs
+- Goals
+- Reports
+- Setup configuration
+- Settings
+- User Profile
+- Database Backups
+
+### Major Work Completed
+
+#### Database and migrations
+
+- Resolved pending migration issues.
+- Applied migrations through `crm.0035`.
+- Added missing setup/configuration schema.
+- Added stored billable status for expenses.
+- Added private backup-file storage.
+- Current migration check reports no pending changes.
+
+Relevant files:
+
+- `Django migrations`
+- `CRM models`
+
+#### Security and authorization
+
+- Added administrator-level backend authorization.
+- Restricted administrative Setup resources.
+- Restricted Staff management.
+- Restricted Settings and financial configuration areas.
+- Restricted Activity Log access.
+- Restricted Database Backup creation, download, and deletion.
+- Normal staff can still use permitted business CRUD APIs.
+- Anonymous users receive protected API authentication errors.
+
+Relevant files:
+
+- `permissions.py`
+- `views.py`
+- `settings.py`
+
+#### Authentication
+
+The project was migrated away from frontend token storage.
+
+Current behavior:
+
+- Access token is stored in an HttpOnly cookie.
+- Refresh token is stored in an HttpOnly cookie.
+- CSRF token is issued and sent through the `X-CSRFToken` header.
+- Axios uses `withCredentials`.
+- Refresh and logout are handled through backend endpoints.
+- Access and refresh JWTs are no longer stored in `localStorage`.
+
+Relevant files:
+
+- `api.js`
+- `authentication.py`
+- `auth_views.py`
+- `config URLs`
+
+#### Backup system
+
+Manual and operational backup functionality now includes:
+
+- Database JSON fixture backups.
+- Private backup storage.
+- Administrator-only downloads.
+- Retention cleanup.
+- Optional Fernet encryption.
+- Restore management command.
+- Explicit restore confirmation requirement.
+- Configurable off-site upload hook.
+- Backup documentation.
+
+Commands are documented in:
+
+- `BACKUPS.md`
+
+Management commands:
+
+```text
+python manage.py backup_database
+python manage.py backup_database --encrypt
+python manage.py restore_database --backup-id <id> --confirm-restore
+```
+
+Automatic execution still requires registering a deployment scheduler such as Windows Task Scheduler, cron, or Celery.
+
+#### Media and images
+
+- Protected staff profile images are fetched through authenticated requests.
+- Missing profile, item, and expense files no longer generate broken media URLs.
+- Stale image requests are handled safely.
+- Frontend API origins were standardized to prevent cookie mismatch between `localhost` and `127.0.0.1`.
+
+Relevant files:
+
+- `AuthenticatedImage.jsx`
+- `ProfilePage.jsx`
+- `Protected media configuration`
+
+#### UI and icons
+
+- Replaced many emoji and text glyph controls with reusable SVG icons.
+- Added consistent icons for:
+  - Create
+  - Save
+  - Edit
+  - Delete
+  - Download
+  - Upload
+  - Refresh
+  - Search
+  - Filter
+  - Reports
+  - Navigation
+- Added icons to the left-side module navigation.
+- Existing labels and layout were preserved.
+
+Relevant file:
+
+- `Icon.jsx`
+
+### Testing and Verification
+
+Automated backend tests were added in:
+
+- `crm/tests.py`
+
+Current test coverage includes:
+
+- Cookie-based login.
+- Refresh-cookie authentication.
+- Anonymous API protection.
+- Admin versus normal-staff access.
+- Staff and Setup permissions.
+- Activity Log protection.
+- Job Activity Checklist protection.
+- Database Backup authorization.
+- Customer CRUD.
+
+Latest result:
+
+```text
+Ran 8 tests
+OK
+```
+
+Other verified checks:
+
+```text
+python manage.py check
+```
+
+Passed.
+
+```text
+python manage.py makemigrations --check --dry-run
+```
+
+Passed with no pending changes.
+
+```text
+npm run build
+```
+
+Passed with 121 frontend modules transformed.
+
+Production security configuration also passed Django’s deployment check when proper HTTPS and environment variables were supplied.
+
+### Current Status
+
+The application is substantially hardened and functional, but final deployment readiness still depends on operational verification:
+
+1. Register and test the automatic backup scheduler.
+2. Configure a real off-site backup provider or upload hook.
+3. Perform an encrypted backup and restore drill in staging.
+4. Complete full CRUD testing for every module.
+5. Verify production MySQL connectivity.
+6. Run migrations on the production database.
+7. Configure production HTTPS, trusted hosts, CORS, CSRF origins, and secure cookies.
+8. Use a strong production `SECRET_KEY`.
+9. Confirm production environment variables are managed outside the repository.
+
+### Overall Assessment
+
+The project is a feature-rich React/Django CRM with a broad business-management module set. The main security and migration blockers have been addressed, authentication has been upgraded to HttpOnly cookies, backup management has been expanded, and initial automated backend coverage is passing.
+
+It is **close to deployment-ready**, but should be marked **NOT READY FOR DEPLOYMENT** until the production scheduler, off-site backup configuration, restore drill, complete module CRUD verification, and final production infrastructure checks are completed.
