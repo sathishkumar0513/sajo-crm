@@ -97,7 +97,12 @@ class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
         print("LOGIN DEBUG - email:", email)
         print("LOGIN DEBUG - password received:", bool(password))
 
-        user = get_user_model().objects.filter(email__iexact=email).first()
+        User = get_user_model()
+
+        user = User.objects.filter(email__iexact=email).first()
+
+        if not user:
+            user = User.objects.filter(username__iexact=email).first()
 
         print("LOGIN DEBUG - user:", user)
         print("LOGIN DEBUG - username:", user.username if user else None)
