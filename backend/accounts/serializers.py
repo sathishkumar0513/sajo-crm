@@ -94,18 +94,12 @@ class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
         email = attrs.get("email", "").strip().lower()
         password = attrs.get("password", "")
 
-        print("LOGIN DEBUG - email:", email)
-        print("LOGIN DEBUG - password received:", bool(password))
-
         User = get_user_model()
 
         user = User.objects.filter(email__iexact=email).first()
 
         if not user:
             user = User.objects.filter(username__iexact=email).first()
-
-        print("LOGIN DEBUG - user:", user)
-        print("LOGIN DEBUG - username:", user.username if user else None)
 
         if not user:
             raise AuthenticationFailed(
@@ -118,8 +112,6 @@ class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
             username=user.username,
             password=password,
         )
-
-        print("LOGIN DEBUG - authenticate result:", self.user)
 
         if not self.user or not self.user.is_active:
             raise AuthenticationFailed(
