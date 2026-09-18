@@ -91,12 +91,40 @@ class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
     username_field = "email"
 
     def validate(self, attrs):
-        email = attrs.get("email", "").strip().lower()
-        user = get_user_model().objects.filter(email__iexact=email).first()
-        if not user:
-            raise AuthenticationFailed(self.error_messages["no_active_account"], "no_active_account")
-        self.user = authenticate(request=self.context.get("request"), username=user.username, password=attrs["password"])
-        if not self.user or not self.user.is_active:
-            raise AuthenticationFailed(self.error_messages["no_active_account"], "no_active_account")
-        refresh = self.get_token(self.user)
-        return {"refresh": str(refresh), "access": str(refresh.access_token)}
+    email = attrs.get("email", "").strip().lower()
+    password = attrs.get("password", "")
+
+    print("LOGIN DEBUG - email:", email)
+    print("LOGIN DEBUG - password received:", bool(password))
+
+    user = get_user_model().objects.filter(email__iexact=email).first()
+
+    print("LOGIN DEBUG - user:", user)
+    print("LOGIN DEBUG - username:", user.username if user else None)
+
+    if not user:
+        raise AuthenticationFailed(
+            self.error_messages["no_active_account"],
+            "no_active_account"
+        )
+
+    self.user = authenticate(
+        request=self.context.get("request"),
+        username=user.username,
+        password=password,
+    )
+
+    print("LOGIN DEBUG - authenticate result:", self.user)
+
+    if not self.user or not self.user.is_active:
+        raise AuthenticationFailed(
+            self.error_messages["no_active_account"],
+            "no_active_account"
+        )
+
+    refresh = self.get_token(self.user)
+
+    return {
+        "refresh": str(refresh),
+        "access": str(refresh.access_token),
+    }
