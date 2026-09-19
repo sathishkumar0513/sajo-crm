@@ -1,3 +1,5 @@
+import logging
+
 from django.conf import settings
 from django.middleware.csrf import get_token
 from rest_framework.permissions import AllowAny
@@ -6,6 +8,9 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from .serializers import EmailTokenObtainPairSerializer
+
+
+logger = logging.getLogger(__name__)
 
 
 COOKIE_KWARGS = {
@@ -20,7 +25,9 @@ class LoginView(APIView):
     permission_classes = (AllowAny,)
 
     def post(self, request):
+        logger.info("LOGIN VIEW DIAGNOSTIC: LoginView.post reached")
         serializer = EmailTokenObtainPairSerializer(data=request.data, context={"request": request})
+        logger.info("LOGIN VIEW DIAGNOSTIC: validating EmailTokenObtainPairSerializer")
         serializer.is_valid(raise_exception=True)
         response = Response({"authenticated": True})
         response.set_cookie("access_token", serializer.validated_data["access"], max_age=900, **COOKIE_KWARGS)
