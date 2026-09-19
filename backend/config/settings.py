@@ -1,3 +1,4 @@
+import logging
 import os
 from pathlib import Path
 
@@ -145,3 +146,8 @@ REST_FRAMEWORK = {
         "rest_framework.filters.OrderingFilter",
     ),
 }
+
+logging.getLogger(__name__).info(
+    "AUTH DIAGNOSTIC: REST_FRAMEWORK_DEFAULT_AUTHENTICATION_CLASSES=%s",
+    REST_FRAMEWORK["DEFAULT_AUTHENTICATION_CLASSES"],
+)
