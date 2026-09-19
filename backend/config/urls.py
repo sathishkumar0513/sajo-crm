@@ -2,10 +2,13 @@ from django.contrib import admin
 from django.conf import settings
 from django.http import FileResponse, Http404
 from pathlib import Path
-from django.urls import include, path
+from django.urls import include, path, re_path
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from accounts.auth_views import CookieLogoutView, CsrfView, LoginView, RefreshCookieView
+
+from .frontend import frontend_asset, frontend_index
+
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -26,4 +29,7 @@ urlpatterns = [
     path("api/auth/", include("accounts.urls")),
     path("api/", include("crm.urls")),
     path("api/media/<path:path>", protected_media, name="protected-media"),
+    path("media/<path:path>", protected_media, name="protected-media-alias"),
+    re_path(r"^assets/(?P<path>.+)$", frontend_asset, name="frontend-asset"),
+    re_path(r"^(?P<path>.*)$", frontend_index, name="frontend-index"),
 ]

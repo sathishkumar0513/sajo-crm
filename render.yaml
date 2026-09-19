@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: sajo-crm
+    runtime: python
+    buildCommand: >-
+      pip install -r backend/requirements.txt &&
+      npm --prefix frontend ci &&
+      npm --prefix frontend run build &&
+      python backend/manage.py collectstatic --noinput &&
+      python backend/manage.py migrate &&
+      python backend/manage.py create_admin
+    startCommand: gunicorn --chdir backend config.wsgi:application
