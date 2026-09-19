@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 COOKIE_KWARGS = {
     "httponly": True,
     "secure": settings.SESSION_COOKIE_SECURE,
-    "samesite": "Lax",
+    "samesite": "None" if settings.SESSION_COOKIE_SECURE else "Lax",
     "path": "/",
 }
 
